@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}For You — Lumen{% endblock %}
+{% block content %}
+<section class="page-hero for-you-hero shell">
+    <div>
+        <span class="eyebrow">Personalised for your reading taste</span>
+        <h1>Your own little bookstore.</h1>
+        <p>Love books you enjoyed or rate them 8–10/10. Lumen combines up to 10 of your strongest and most recent positive taste signals to reshape this shelf.</p>
+    </div>
+    <div class="taste-stat"><strong>{{ seed_books|length }}</strong><span>signals in use</span></div>
+</section>
+
+<section class="shell taste-builder">
+    <div class="section-head">
+        <div><span class="eyebrow">Tune your recommendations</span><h2>What have you loved reading?</h2><p>Love and rate as many books as you like. Lumen uses up to 10 of your strongest and most recent positive signals at a time, so the shelf stays focused.</p></div>
+    </div>
+    {% if seed_books %}
+    <div class="taste-row">
+        {% for book in seed_books %}
+        <a class="taste-chip" href="{{ book_details_url(book.ISBN) }}"><img src="{{ cover_url(book) }}" onerror="this.onerror=null;this.src='{{ default_cover }}';"><span>{{ book['Book-Title'] }}</span></a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <form class="taste-search" method="get" action="{{ url_for('for_you') }}">
+        <input class="input" name="q" value="{{ query }}" placeholder="Search for a book you loved">
+        <button class="primary-button" type="submit">Find book</button>
+    </form>
+    {% if search_results %}
+    <div class="quick-results">
+        {% for book in search_results %}
+        <div class="quick-book">
+            <img src="{{ cover_url(book) }}" onerror="this.onerror=null;this.src='{{ default_cover }}';">
+            <div><strong>{{ book['Book-Title'] }}</strong><span>{{ book['Book-Author'] }}</span></div>
+            <form method="post" action="{{ url_for('action_love', isbn=book.ISBN) }}">
+                <input type="hidden" name="next" value="{{ current_url }}">
+                <button class="secondary-button" type="submit">♥ Add to my taste</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+
+{% if recommendations %}
+<section class="section shell">
+    <div class="section-head"><div><span class="eyebrow">Just for you</span><h2>Books we think you’ll enjoy</h2><p>Hybrid recommendations adapt as you love books or give ratings of 8–10/10. Lower ratings remain feedback but are not positive taste signals. Match scores are relative to the strongest recommendation in the current shelf, not prediction probabilities.</p></div></div>
+    <div class="book-grid recommendations-grid">
+        {% for book in recommendations %}{% include '_book_card.html' %}{% endfor %}
+    </div>
+</section>
+{% else %}
+<section class="empty-state shell standalone"><div class="empty-icon">♥</div><h2>Start with books you already love</h2><p>Search above and add two or three favourites. That gives Lumen enough context to start personalising this page.</p></section>
+{% endif %}
+{% endblock %}

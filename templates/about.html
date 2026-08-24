@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}About Lumen — Data, recommendations and purpose{% endblock %}
+{% block content %}
+<section class="about-hero shell">
+    <div class="about-hero-copy">
+        <span class="eyebrow">About Lumen</span>
+        <h1>Helping readers find the <em>right book</em>, not just another book.</h1>
+        <p>Lumen is an AI-powered book discovery prototype built to make a large catalogue feel personal. It combines reader behaviour, book metadata and rating signals so users can discover popular titles, explore similar books and build recommendations around their own taste.</p>
+        <div class="about-hero-actions">
+            <a class="primary-button" href="{{ url_for('for_you') }}">Build my recommendations</a>
+            <a class="secondary-button" href="#dataset">Explore the data</a>
+            {% if stats.evaluation_results %}<a class="secondary-button" href="#evaluation">View AI evaluation</a>{% endif %}
+        </div>
+    </div>
+    <div class="about-identity-card" aria-label="Lumen mission">
+        <div class="about-book-mark" aria-hidden="true"><img src="{{ url_for('static', filename='images/lumen-mark.svg') }}" alt=""></div>
+        <span class="eyebrow">Our purpose</span>
+        <h2>Make discovery feel human.</h2>
+        <p>Instead of asking readers to understand algorithms, Lumen uses the books readers love and rate highly as positive taste signals. Search and save features support discovery and reading-list management, while the AI methods stay measurable and explainable for evaluation.</p>
+    </div>
+</section>
+
+<section class="about-section shell" id="dataset">
+    <div class="about-section-head">
+        <div>
+            <span class="eyebrow">Dataset at a glance</span>
+            <h2>The catalogue behind Lumen</h2>
+        </div>
+        <p>These figures are calculated directly from the local CSV dataset each time the application process starts, so the page stays aligned with the data used by the recommender.</p>
+    </div>
+
+    <div class="stat-grid">
+        <article class="stat-card featured"><span>Unique books</span><strong>{{ stats.total_books|compact }}</strong><small>Title + author identities</small></article>
+        <article class="stat-card"><span>Authors</span><strong>{{ stats.total_authors|compact }}</strong><small>Across the catalogue</small></article>
+        <article class="stat-card"><span>Readers</span><strong>{{ stats.total_users|compact }}</strong><small>Dataset users</small></article>
+        <article class="stat-card"><span>Explicit ratings</span><strong>{{ stats.total_ratings|compact }}</strong><small>Ratings above zero</small></article>
+        <article class="stat-card"><span>Average rating</span><strong>{{ '%.1f'|format(stats.average_rating_10) }}<em>/10</em></strong><small>Original explicit rating scale</small></article>
+        <article class="stat-card"><span>Publishers</span><strong>{{ stats.total_publishers|compact }}</strong><small>Distinct publisher names</small></article>
+    </div>
+
+    <div class="insight-grid">
+        <article class="insight-card rating-chart-card">
+            <div class="chart-heading"><div><span class="eyebrow">Reader feedback</span><h3>Rating distribution</h3></div><span class="chart-note">Original 1–10 scale</span></div>
+            {% set max_rating = stats.rating_distribution|map(attribute='value')|max %}
+            <div class="column-chart ten-column-chart" aria-label="Rating distribution column chart">
+                {% for item in stats.rating_distribution %}
+                <div class="column-item">
+                    <div class="column-value">{{ item.value|compact }}</div>
+                    <div class="column-track">
+                        <i style="height: {{ ((item.value / max_rating) * 100)|round(1) if max_rating else 0 }}%"></i>
+                    </div>
+                    <span>{{ item.label }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="chart-disclaimer"><strong>Scale note:</strong> the source dataset uses explicit ratings from 1–10. Lumen preserves this scale directly in the interface and recommendation profile, so no conversion is required.</p>
+        </article>
+
+        <article class="insight-card category-chart-card">
+            <div class="chart-heading"><div><span class="eyebrow">Catalogue mix</span><h3>Estimated categories among classified titles</h3></div><span class="chart-note">{{ stats.estimated_category_coverage }}% coverage</span></div>
+            {% set category_total = stats.estimated_category_classified %}
+            <div class="donut-layout">
+                <div class="donut-chart" aria-label="Estimated category donut chart">
+                    <svg viewBox="0 0 42 42" role="img">
+                        <circle class="donut-bg" cx="21" cy="21" r="15.9155"></circle>
+                        {% set ns = namespace(offset=0) %}
+                        {% for item in stats.estimated_categories %}
+                            {% set pct = ((item.value / category_total) * 100) if category_total else 0 %}
+                            <circle class="donut-segment donut-segment-{{ loop.index }}" cx="21" cy="21" r="15.9155"
+                                    stroke-dasharray="{{ pct|round(2) }} {{ (100 - pct)|round(2) }}"
+                                    stroke-dashoffset="{{ (-ns.offset)|round(2) }}"></circle>
+                            {% set ns.offset = ns.offset + pct %}
+                        {% endfor %}
+                    </svg>
+                    <div class="donut-center"><strong>{{ category_total|compact }}</strong><span>classified</span><small>{{ stats.estimated_category_coverage }}% of catalogue</small></div>
+                </div>
+                <div class="donut-legend">
+                    {% for item in stats.estimated_categories %}
+                    <div><i class="legend-dot legend-dot-{{ loop.index }}"></i><span title="{{ item.label }}">{{ item.label }}</span><strong>{{ ((item.value / category_total) * 100)|round(1) if category_total else 0 }}%</strong></div>
+                    {% endfor %}
+                </div>
+            </div>
+            <p class="chart-disclaimer">The source dataset has no genre column. These broad categories are estimated from title keywords for descriptive analysis only. {{ stats.estimated_category_unclassified|compact }} titles remain unclassified and are excluded from the donut percentages. The estimated categories are not treated as ground-truth genre labels or recommendation targets.</p>
+        </article>
+
+        <article class="insight-card publisher-chart-card">
+            <div class="chart-heading"><div><span class="eyebrow">Publishing landscape</span><h3>Top publishers</h3></div><span class="chart-note">Unique books</span></div>
+            {% set max_publisher = stats.top_publishers|map(attribute='value')|max %}
+            <div class="bar-chart compact-bars publisher-bars">
+                {% for item in stats.top_publishers %}
+                <div class="bar-row">
+                    <span class="bar-label" title="{{ item.label }}">{{ item.label }}</span>
+                    <div class="bar-track"><i style="width: {{ ((item.value / max_publisher) * 100)|round(1) if max_publisher else 0 }}%"></i></div>
+                    <strong>{{ item.value|compact }}</strong>
+                </div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <article class="insight-card period-chart-card">
+            <div class="chart-heading"><div><span class="eyebrow">Across time</span><h3>Publication periods</h3></div><span class="chart-note">Validated years only</span></div>
+            {% set max_period = stats.publication_periods|map(attribute='value')|max %}
+            <div class="line-chart-wrap" aria-label="Publication periods line chart">
+                <svg class="line-chart" viewBox="0 0 100 40" preserveAspectRatio="xMidYMid meet" role="img">
+                    <line class="grid-line" x1="6" y1="33" x2="96" y2="33"></line>
+                    <line class="grid-line faint" x1="6" y1="19" x2="96" y2="19"></line>
+                    <line class="grid-line faint" x1="6" y1="5" x2="96" y2="5"></line>
+                    {% set pts = namespace(value='') %}
+                    {% for item in stats.publication_periods %}
+                        {% set x = 8 + (loop.index0 * (86 / ((stats.publication_periods|length - 1) if stats.publication_periods|length > 1 else 1))) %}
+                        {% set y = 33 - (((item.value / max_period) * 26) if max_period else 0) %}
+                        {% set pts.value = pts.value ~ x ~ ',' ~ y ~ (' ' if not loop.last else '') %}
+                    {% endfor %}
+                    <polyline class="line-area-edge" points="{{ pts.value }}"></polyline>
+                    {% for item in stats.publication_periods %}
+                        {% set x = 8 + (loop.index0 * (86 / ((stats.publication_periods|length - 1) if stats.publication_periods|length > 1 else 1))) %}
+                        {% set y = 33 - (((item.value / max_period) * 26) if max_period else 0) %}
+                        <line class="line-stem" x1="{{ x }}" y1="{{ y }}" x2="{{ x }}" y2="33"></line>
+                        <circle class="line-point" cx="{{ x }}" cy="{{ y }}" r="1.8"></circle>
+                    {% endfor %}
+                </svg>
+                <div class="line-chart-labels">
+                    {% for item in stats.publication_periods %}
+                    <div><strong>{{ item.value|compact }}</strong><span>{{ item.label }}</span></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </article>
+    </div>
+</section>
+
+<section class="about-section shell">
+    <div class="about-section-head">
+        <div><span class="eyebrow">How it works</span><h2>Three recommendation approaches, one reading experience</h2></div>
+        <p>Lumen implements multiple recommender approaches for technical comparison, while keeping the reader-facing experience simple and automatic.</p>
+    </div>
+    <div class="method-grid">
+        <article class="method-card">
+            <span class="method-number">01</span>
+            <div><span class="method-tag">Content-Based Filtering</span><h3>Similar book profile</h3><p>Compares title, author, publisher and publication period using TF-IDF and cosine similarity. This is especially useful when a book has limited reader-rating history.</p></div>
+        </article>
+        <article class="method-card">
+            <span class="method-number">02</span>
+            <div><span class="method-tag">Collaborative Filtering</span><h3>Similar reader behaviour</h3><p>Uses item-based collaborative filtering to find books that receive similar explicit rating patterns from active readers in the dataset.</p></div>
+        </article>
+        <article class="method-card highlight-method">
+            <span class="method-number">03</span>
+            <div><span class="method-tag">Hybrid Filtering</span><h3>Balanced recommendations</h3><p>Combines collaborative and content evidence for personalised and related-book recommendations, with automatic fallback when one source of evidence is sparse.</p></div>
+        </article>
+    </div>
+</section>
+
+{% if stats.evaluation_results %}
+<section class="about-section shell" id="evaluation">
+    <div class="about-section-head">
+        <div><span class="eyebrow">AI evaluation</span><h2>Accuracy and efficiency are measured, not assumed</h2></div>
+        <p>The included offline evaluation uses held-out readers. Precision@10, Recall@10 and F1@10 assess recommendation accuracy, while mean recommendation time measures efficiency.</p>
+    </div>
+    {% set max_f1 = stats.evaluation_results|map(attribute='f1')|max %}
+    <div class="evaluation-grid">
+        {% for result in stats.evaluation_results %}
+        <article class="evaluation-card {% if result.f1 == max_f1 %}featured-evaluation{% endif %}">
+            <div class="evaluation-card-head">
+                <div><span class="method-tag">Model {{ loop.index }}</span><h3>{{ result.model }}</h3></div>
+                <span class="evaluation-time">{{ '%.1f'|format(result.mean_time_ms) }} ms</span>
+            </div>
+            <div class="evaluation-metrics">
+                <div><span>Precision@10</span><strong>{{ '%.2f'|format(result.precision * 100) }}%</strong></div>
+                <div><span>Recall@10</span><strong>{{ '%.2f'|format(result.recall * 100) }}%</strong></div>
+                <div><span>F1@10</span><strong>{{ '%.2f'|format(result.f1 * 100) }}%</strong></div>
+                <div><span>Hit Rate@10</span><strong>{{ '%.0f'|format(result.hit_rate * 100) }}%</strong></div>
+            </div>
+            <div class="evaluation-bar-label"><span>Relative F1 performance</span><strong>{{ '%.2f'|format(result.f1 * 100) }}%</strong></div>
+            <div class="evaluation-bar"><i style="width: {{ ((result.f1 / max_f1) * 100)|round(1) if max_f1 else 0 }}%"></i></div>
+            <p>{{ '%.0f'|format(result.availability * 100) }}% recommendation availability across {{ result.test_cases }} held-out test cases.</p>
+        </article>
+        {% endfor %}
+    </div>
+    <p class="evaluation-note">Evaluation values are loaded from <code>recommender_evaluation_results.csv</code>, generated by <code>evaluate_recommenders.py</code>. Historical high ratings are used as relevance labels for this offline comparison; the results are an evaluation proxy rather than a claim of guaranteed user satisfaction.</p>
+</section>
+{% endif %}
+
+<section class="about-section shell about-story">
+    <div>
+        <span class="eyebrow">Built for responsible discovery</span>
+        <h2>What Lumen is designed to do</h2>
+        <p>This prototype focuses on transparent recommendation logic, useful reader controls and a clear separation between recommendation methods. Saved books, loved books and personal ratings are stored locally for the demo reading profile.</p>
+    </div>
+    <div class="principle-list">
+        <div><span>01</span><p><strong>Discover.</strong> Search a large catalogue by title, author, publisher or ISBN.</p></div>
+        <div><span>02</span><p><strong>Personalise.</strong> Loved books and personal ratings of 8–10/10 create positive taste signals for the For You shelf; lower ratings remain stored feedback but are not treated as positive seeds.</p></div>
+        <div><span>03</span><p><strong>Stay consistent.</strong> Dataset reader ratings and personal ratings both use the same visible 1–10 scale, keeping the data and interface consistent.</p></div>
+        <div><span>04</span><p><strong>Evaluate.</strong> Collaborative, content-based and hybrid approaches can be compared using accuracy and efficiency metrics.</p></div>
+    </div>
+</section>
+{% endblock %}

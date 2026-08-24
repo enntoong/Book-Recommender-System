@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f2e8">
+    <title>{% block title %}Lumen{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/lumen-mark.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body>
+<header class="site-header">
+    <div class="nav-shell">
+        <a class="brand" href="{{ url_for('home') }}" aria-label="Lumen home">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 36 36" role="presentation" focusable="false">
+                    <path class="brand-book" d="M8.5 13.5c3.4-2 6.4-1.8 9.5.2v12.1c-3-2-6.1-2.3-9.5-.6V13.5Z"/>
+                    <path class="brand-book" d="M27.5 13.5c-3.4-2-6.4-1.8-9.5.2v12.1c3-2 6.1-2.3 9.5-.6V13.5Z"/>
+                    <path class="brand-spine" d="M18 13.9v11.8"/>
+                    <path class="brand-spark" d="M18 6.4l1.05 2.35L21.4 9.8l-2.35 1.05L18 13.2l-1.05-2.35L14.6 9.8l2.35-1.05L18 6.4Z"/>
+                </svg>
+            </span>
+            <span class="brand-copy">
+                <span class="brand-name">LUMEN</span>
+                <span class="brand-tagline">Book Intelligence</span>
+            </span>
+        </a>
+        <nav class="main-nav" data-main-nav>
+            <a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">Home</a>
+            <a href="{{ url_for('discover') }}" class="{% if request.endpoint == 'discover' %}active{% endif %}">Discover</a>
+            <a href="{{ url_for('for_you') }}" class="{% if request.endpoint == 'for_you' %}active{% endif %}">For You</a>
+            <a href="{{ url_for('my_books') }}" class="{% if request.endpoint == 'my_books' %}active{% endif %}">
+                My Books
+                {% if library_counts.saved %}<span class="nav-count">{{ library_counts.saved }}</span>{% endif %}
+            </a>
+            <a href="{{ url_for('about') }}" class="{% if request.endpoint == 'about' %}active{% endif %}">About Us</a>
+        </nav>
+        <form class="nav-search" action="{{ url_for('discover') }}" method="get" data-autocomplete-form>
+            <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M15 15l4.5 4.5"></path></svg></span>
+            <input name="q" autocomplete="off" placeholder="Search books or authors" aria-label="Search" data-autocomplete-input>
+            <div class="autocomplete" data-autocomplete-results hidden></div>
+        </form>
+    </div>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="toast-stack">
+        {% for category, message in messages %}
+        <div class="toast {{ category }}" data-toast>{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+    <div>
+        <a class="brand footer-brand" href="{{ url_for('home') }}" aria-label="Lumen home">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 36 36" role="presentation" focusable="false">
+                    <path class="brand-book" d="M8.5 13.5c3.4-2 6.4-1.8 9.5.2v12.1c-3-2-6.1-2.3-9.5-.6V13.5Z"/>
+                    <path class="brand-book" d="M27.5 13.5c-3.4-2-6.4-1.8-9.5.2v12.1c3-2 6.1-2.3 9.5-.6V13.5Z"/>
+                    <path class="brand-spine" d="M18 13.9v11.8"/>
+                    <path class="brand-spark" d="M18 6.4l1.05 2.35L21.4 9.8l-2.35 1.05L18 13.2l-1.05-2.35L14.6 9.8l2.35-1.05L18 6.4Z"/>
+                </svg>
+            </span>
+            <span class="brand-copy">
+                <span class="brand-name">LUMEN</span>
+                <span class="brand-tagline">Book Intelligence</span>
+            </span>
+        </a>
+        <p>A book discovery prototype that learns from what readers enjoy.</p>
+    </div>
+    <div class="footer-note"><a href="{{ url_for('about') }}">About Lumen</a> • AI-powered book discovery • Personalised recommendations</div>
+</footer>
+</body>
+</html>

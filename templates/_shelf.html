@@ -1,0 +1,15 @@
+<section class="section shell">
+    <div class="section-head">
+        <div>
+            <span class="eyebrow">{{ eyebrow|default('Discover') }}</span>
+            <h2>{{ title }}</h2>
+            {% if subtitle %}<p>{{ subtitle }}</p>{% endif %}
+        </div>
+        {% if link_url %}<a class="text-link" href="{{ link_url }}">{{ link_text|default('See all') }} →</a>{% endif %}
+    </div>
+    <div class="book-shelf">
+        {% for book in books %}
+            {% include '_book_card.html' %}
+        {% endfor %}
+    </div>
+</section>

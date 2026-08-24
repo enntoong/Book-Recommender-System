@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Discover books — Lumen{% endblock %}
+{% block content %}
+<section class="page-hero compact shell">
+    <span class="eyebrow">Explore the catalogue</span>
+    <h1>Discover your next read</h1>
+    <p>Search widely, then refine the results the same way you would browse a real bookstore.</p>
+</section>
+
+<section class="discover-layout shell">
+    <aside class="filter-panel">
+        <form method="get" action="{{ url_for('discover') }}">
+            <label>Search</label>
+            <input class="input" name="q" value="{{ query }}" placeholder="Title, author, publisher or ISBN">
+
+            <label>Minimum reader rating</label>
+            <select class="input" name="rating">
+                <option value="0" {% if minimum_rating == 0 %}selected{% endif %}>Any rating</option>
+                <option value="6" {% if minimum_rating == 6 %}selected{% endif %}>6/10 & up</option>
+                <option value="7" {% if minimum_rating == 7 %}selected{% endif %}>7/10 & up</option>
+                <option value="8" {% if minimum_rating == 8 %}selected{% endif %}>8/10 & up</option>
+                <option value="9" {% if minimum_rating == 9 %}selected{% endif %}>9/10 & up</option>
+                <option value="10" {% if minimum_rating == 10 %}selected{% endif %}>10/10 only</option>
+            </select>
+            <p class="filter-hint">Reader scores use the original 1–10 Book-Crossing rating scale.</p>
+
+            <label>Publication year</label>
+            <div class="two-inputs">
+                <input class="input" type="number" name="from" value="{{ year_from or '' }}" placeholder="From" min="{{ valid_year_min }}" max="{{ valid_year_max }}">
+                <input class="input" type="number" name="to" value="{{ year_to or '' }}" placeholder="To" min="{{ valid_year_min }}" max="{{ valid_year_max }}">
+            </div>
+
+            <label>Sort by</label>
+            <select class="input" name="sort">
+                <option value="popular" {% if sort == 'popular' %}selected{% endif %}>Most popular</option>
+                <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Highest rated</option>
+                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Publication year</option>
+                <option value="title" {% if sort == 'title' %}selected{% endif %}>Title A–Z</option>
+            </select>
+            <p class="filter-hint">Highest rated uses a weighted reader score so books with only a few ratings do not dominate the ranking. Displayed ratings remain the original averages.</p>
+            <button class="primary-button full" type="submit">Show books</button>
+            <a class="secondary-button full center" href="{{ url_for('discover') }}">Clear filters</a>
+        </form>
+    </aside>
+
+    <div class="discover-results">
+        <div class="results-head">
+            {% if total %}
+            <div>Showing <strong>{{ '{:,}'.format(result_start) }}–{{ '{:,}'.format(result_end) }}</strong> of <strong>{{ '{:,}'.format(total) }}</strong> books {% if query %}matching “{{ query }}”{% endif %}</div>
+            <div>Page {{ page }}</div>
+            {% else %}
+            <div><strong>0</strong> books {% if query %}matching “{{ query }}”{% endif %}</div>
+            {% endif %}
+        </div>
+        {% if books %}
+        <div class="book-grid">
+            {% for book in books %}{% include '_book_card.html' %}{% endfor %}
+        </div>
+        <nav class="pagination" aria-label="Results pages">
+            {% if page > 1 %}<a href="{{ url_for('discover', q=query, rating=minimum_rating, from=year_from, to=year_to, sort=sort, page=page-1) }}">← Previous</a>{% endif %}
+            <span>Showing {{ '{:,}'.format(result_start) }}–{{ '{:,}'.format(result_end) }}</span>
+            {% if page < pages %}<a href="{{ url_for('discover', q=query, rating=minimum_rating, from=year_from, to=year_to, sort=sort, page=page+1) }}">Next →</a>{% endif %}
+        </nav>
+        {% else %}
+        <div class="empty-state"><div class="empty-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M15 15l4.5 4.5"></path></svg></div><h2>No books found</h2><p>Try a shorter search term or loosen one of the filters.</p><a class="primary-button" href="{{ url_for('discover') }}">Reset search</a></div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

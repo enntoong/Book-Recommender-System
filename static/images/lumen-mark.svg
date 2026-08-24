@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Lumen logo</title>
+  <rect x="4" y="4" width="56" height="56" rx="18" fill="#173f2f"/>
+  <rect x="4.75" y="4.75" width="54.5" height="54.5" rx="17.25" fill="none" stroke="#d8a64d" stroke-width="1.5"/>
+  <path d="M16.5 27c6-3.6 11.2-3.1 15.5.4v20c-5-3.4-10.4-3.8-15.5-1V27Z" fill="none" stroke="#fffaf0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M47.5 27c-6-3.6-11.2-3.1-15.5.4v20c5-3.4 10.4-3.8 15.5-1V27Z" fill="none" stroke="#fffaf0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 27.8v19" fill="none" stroke="#fffaf0" stroke-opacity=".72" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M32 11.5l1.85 4.15 4.15 1.85-4.15 1.85L32 23.5l-1.85-4.15L26 17.5l4.15-1.85L32 11.5Z" fill="#e0b767"/>
+</svg>

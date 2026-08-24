@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Lumen — Find your next great read{% endblock %}
+{% block content %}
+<section class="hero shell">
+    <div class="hero-copy">
+        <span class="eyebrow">Your next chapter starts here</span>
+        <h1>Find a book that feels <em>made for you.</em></h1>
+        <p>Search the catalogue, save what catches your eye, and tell Lumen what you love. Your recommendations get more personal as your taste profile grows.</p>
+        <form class="hero-search" action="{{ url_for('discover') }}" method="get" data-autocomplete-form>
+            <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"></circle><path d="M15 15l4.5 4.5"></path></svg></span>
+            <input name="q" autocomplete="off" placeholder="Search by title, author, publisher or ISBN" data-autocomplete-input>
+            <button class="primary-button" type="submit">Search books</button>
+            <div class="autocomplete hero-autocomplete" data-autocomplete-results hidden></div>
+        </form>
+        <div class="hero-chips"><span>245K+ titles</span><span>Reader ratings</span><span>Personalised discovery</span></div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+        <div class="quote-card"><span>“</span><p>A reader lives a thousand lives before he dies.</p><small>— George R. R. Martin</small></div>
+        <div class="book-stack"><i></i><i></i><i></i><i></i></div>
+    </div>
+</section>
+
+{% if personalised %}
+{% set books = personalised %}{% set eyebrow = 'Picked for you' %}{% set title = 'Books matched to your taste' %}{% set subtitle = 'Built from the books you loved and rated highly.' %}{% set link_url = url_for('for_you') %}{% set link_text = 'Open For You' %}
+{% include '_shelf.html' %}
+{% else %}
+<section class="taste-banner shell">
+    <div>
+        <span class="eyebrow">Make Lumen yours</span>
+        <h2>Tell us a few books you loved.</h2>
+        <p>That is enough to start shaping a personalised shelf — no technical settings required.</p>
+    </div>
+    <a class="primary-button" href="{{ url_for('for_you') }}">Build my taste profile</a>
+</section>
+{% endif %}
+
+{% set books = popular %}{% set eyebrow = 'Most rated' %}{% set title = 'Popular by reader activity' %}{% set subtitle = 'Books with the highest number of explicit reader ratings across the catalogue.' %}{% set link_url = url_for('discover', sort='popular') %}{% set link_text = 'Browse popular' %}
+{% include '_shelf.html' %}
+
+{% set books = highly_rated %}{% set eyebrow = 'Worth the hype' %}{% set title = 'Highly rated' %}{% set subtitle = 'Strong reader scores backed by at least 100 ratings.' %}{% set link_url = url_for('discover', sort='rating', rating=8) %}{% set link_text = 'Explore top rated' %}
+{% include '_shelf.html' %}
+
+{% if gems %}
+{% set books = gems %}{% set eyebrow = 'Go beyond the obvious' %}{% set title = 'Hidden gems' %}{% set subtitle = 'Well-loved books with a smaller but meaningful reader following.' %}{% set link_url = url_for('discover', sort='rating') %}{% set link_text = 'Discover more' %}
+{% include '_shelf.html' %}
+{% endif %}
+
+{% if recent %}
+{% set books = recent %}{% set eyebrow = 'Pick up where you left off' %}{% set title = 'Recently viewed' %}{% set subtitle = None %}{% set link_url = None %}
+{% include '_shelf.html' %}
+{% endif %}
+{% endblock %}

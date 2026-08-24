@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}My Books — Lumen{% endblock %}
+{% block content %}
+<section class="page-hero compact shell">
+    <span class="eyebrow">Your reading space</span>
+    <h1>My Books</h1>
+    <p>Keep books for later, mark favourites, and revisit your ratings.</p>
+</section>
+<section class="shell">
+    <nav class="tabs">
+        <a class="{% if view == 'saved' %}active{% endif %}" href="{{ url_for('my_books', view='saved') }}">Saved <span>{{ library_counts.saved }}</span></a>
+        <a class="{% if view == 'loved' %}active{% endif %}" href="{{ url_for('my_books', view='loved') }}">Loved <span>{{ library_counts.loved }}</span></a>
+        <a class="{% if view == 'rated' %}active{% endif %}" href="{{ url_for('my_books', view='rated') }}">Rated <span>{{ library_counts.rated }}</span></a>
+    </nav>
+    {% if books %}
+    <div class="library-list">
+        {% for book in books %}
+        <article class="library-row">
+            <a href="{{ book_details_url(book.ISBN) }}"><img src="{{ cover_url(book) }}" onerror="this.onerror=null;this.src='{{ default_cover }}';"></a>
+            <div class="library-main"><a href="{{ book_details_url(book.ISBN) }}"><h3>{{ book['Book-Title'] }}</h3></a><p>{{ book['Book-Author'] }}</p>{% if book.num_ratings %}<div class="book-rating"><strong class="rating-score">{{ '%.1f'|format(book.avg_rating) }}</strong><span class="rating-denominator">/10</span> <span class="rating-count">({{ book.num_ratings|compact }} ratings)</span></div>{% else %}<div class="book-rating unrated-copy">No reader ratings</div>{% endif %}</div>
+            <div class="reader-meta">
+                {% if book.reader.rating %}<span class="reader-rating">Your rating: {{ book.reader.rating }}/10</span>{% endif %}
+                {% if book.reader.loved %}<span>♥ Loved</span>{% endif %}
+                {% if book.reader.saved %}<span>Saved for later</span>{% endif %}
+            </div>
+            <a class="secondary-button" href="{{ book_details_url(book.ISBN) }}">View book</a>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state standalone"><div class="empty-icon">▤</div><h2>Nothing here yet</h2><p>Explore the catalogue and start building your own reading space.</p><a class="primary-button" href="{{ url_for('discover') }}">Discover books</a></div>
+    {% endif %}
+    <div class="reset-zone"><div><strong>Demo profile controls</strong><p>Reset all locally saved, loved and rated books before a fresh demonstration.</p></div><form method="post" action="{{ url_for('action_reset_profile') }}" onsubmit="return confirm('Reset your local Lumen profile?')"><input type="hidden" name="next" value="{{ current_url }}"><button class="danger-link" type="submit">Reset profile</button></form></div>
+</section>
+{% endblock %}

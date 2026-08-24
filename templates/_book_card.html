@@ -1,0 +1,18 @@
+<article class="book-card">
+    <a class="cover-wrap" href="{{ book_details_url(book.ISBN) }}">
+        <img class="book-cover" src="{{ cover_url(book) }}" alt="Cover of {{ book['Book-Title'] }}" loading="lazy" onerror="this.onerror=null;this.src='{{ default_cover }}';">
+        {% if book.match_score is defined and book.match_score %}
+            <span class="match-pill">Match {{ book.match_score }}</span>
+        {% endif %}
+    </a>
+    <div class="book-card-body">
+        <a class="book-title" href="{{ book_details_url(book.ISBN) }}">{{ book['Book-Title'] }}</a>
+        <div class="book-author">{{ book['Book-Author'] }}</div>
+        {% if book.num_ratings is defined and book.num_ratings %}
+        <div class="book-rating"><strong class="rating-score">{{ '%.1f'|format(book.avg_rating) }}</strong><span class="rating-denominator">/10</span> <span class="rating-count">({{ book.num_ratings|compact }})</span></div>
+        {% endif %}
+        {% if book.recommendation_reason is defined and book.recommendation_reason %}
+        <div class="reason">{{ book.recommendation_reason }}</div>
+        {% endif %}
+    </div>
+</article>

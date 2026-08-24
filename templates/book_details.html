@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}{{ book['Book-Title'] }} — Lumen{% endblock %}
+{% block content %}
+<div class="page-back-row shell"><a class="back-link page-back" href="{{ back_url }}">← Back</a></div>
+<section class="book-detail shell">
+    <div class="detail-cover-column">
+        <img class="detail-cover" src="{{ cover_url(book) }}" alt="Cover of {{ book['Book-Title'] }}" onerror="this.onerror=null;this.src='{{ default_cover }}';">
+        <div class="detail-actions">
+            <form method="post" action="{{ url_for('action_save', isbn=book.ISBN) }}">
+                <input type="hidden" name="next" value="{{ current_url }}">
+                <button class="{% if reader.saved %}primary-button{% else %}secondary-button{% endif %} full" type="submit">
+                    {% if reader.saved %}
+                    <span class="button-icon" aria-hidden="true">✓</span> Saved
+                    {% else %}
+                    <svg class="button-icon bookmark-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 4.5h11v15l-5.5-3.2-5.5 3.2z"></path></svg> Save for later
+                    {% endif %}
+                </button>
+            </form>
+            <form method="post" action="{{ url_for('action_love', isbn=book.ISBN) }}"><input type="hidden" name="next" value="{{ current_url }}"><button class="{% if reader.loved %}love-button active{% else %}love-button{% endif %} full" type="submit">{% if reader.loved %}♥ In my taste profile{% else %}♡ I loved this book{% endif %}</button></form>
+        </div>
+    </div>
+    <div class="detail-main">
+        <span class="eyebrow">Book details</span>
+        <h1>{{ book['Book-Title'] }}</h1>
+        <div class="detail-author">by <strong>{{ book['Book-Author'] }}</strong></div>
+
+        <div class="rating-panel" aria-label="Reader rating breakdown">
+            <div class="rating-overview">
+                <div>
+                    {% if book.num_ratings %}
+                    <div class="rating-big"><strong>{{ '%.1f'|format(book.avg_rating) }}</strong><small>/10</small></div>
+                    <div class="source-rating">Average of explicit Book-Crossing reader ratings</div>
+                    {% else %}
+                    <div class="rating-big unrated">Not rated</div>
+                    <div class="source-rating">No explicit source rating available</div>
+                    {% endif %}
+                </div>
+                <div class="rating-total"><strong>{{ book.num_ratings|compact }}</strong><span>reader ratings</span></div>
+            </div>
+            {% if book.num_ratings %}
+            <div class="rating-breakdown ten-point-breakdown">
+                {% for row in rating_breakdown %}
+                <div class="rating-bar-row">
+                    <span class="rating-bar-label">{{ row.label }}</span>
+                    <div class="rating-bar-track" aria-hidden="true">
+                        <span class="rating-bar-fill" style="width: {{ '%.1f'|format(row.percent) }}%;"></span>
+                    </div>
+                    <strong class="rating-bar-count">{{ row.count }}</strong>
+                    <span class="rating-bar-percent">{{ '%.0f'|format(row.percent) }}%</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="rating-scale-note"><strong>Rating scale:</strong> Lumen keeps the original Book-Crossing 1–10 explicit rating scale without conversion. Matching editions of the same title and author are combined for the reader rating summary.</p>
+            {% else %}
+            <p class="no-rating-note">This book does not have an explicit reader rating in the source dataset yet.</p>
+            {% endif %}
+        </div>
+
+        <div class="metadata-grid">
+            <div><span>Published</span><strong>{{ safe_year(book['Year-Of-Publication']) }}</strong></div>
+            <div><span>Publisher</span><strong>{{ book.Publisher }}</strong></div>
+            <div><span>ISBN</span><strong>{{ book.ISBN }}</strong></div>
+        </div>
+
+        <div class="your-rating">
+            <div>
+                <span class="eyebrow">Your rating</span>
+                <h3>How did this book feel to you?</h3>
+                <p>Choose a score from 1 to 10. Your personal rating uses the same scale as the source reader ratings. Ratings of 8–10/10 become positive taste signals for your For You shelf. Because Loved also means a strong positive preference, a later rating below 8/10 removes the Loved flag.</p>
+            </div>
+            <form method="post" action="{{ url_for('action_rate', isbn=book.ISBN) }}" class="rating-form">
+                <input type="hidden" name="next" value="{{ current_url }}">
+                <div class="rating-choice-grid" role="radiogroup" aria-label="Your rating from 1 to 10">
+                    {% for score in range(1,11) %}
+                    <input type="radio" id="rating{{ score }}" name="rating" value="{{ score }}" {% if reader.rating == score %}checked{% endif %} required>
+                    <label for="rating{{ score }}">{{ score }}<small>/10</small></label>
+                    {% endfor %}
+                </div>
+                {% if reader.rating %}<div class="current-personal-rating">Current: <strong>{{ reader.rating }}/10</strong></div>{% endif %}
+                <button class="secondary-button" type="submit">Save rating</button>
+            </form>
+            {% if reader.rating %}<form method="post" action="{{ url_for('action_clear_rating', isbn=book.ISBN) }}"><input type="hidden" name="next" value="{{ current_url }}"><button class="text-button" type="submit">Remove my rating</button></form>{% endif %}
+        </div>
+    </div>
+</section>
+
+{% if related %}
+{% set books = related %}{% set eyebrow = 'Keep exploring' %}{% set title = 'You might also enjoy' %}{% set subtitle = 'Hybrid recommendations combine reader behaviour with the profile of this book. Match scores are relative to the strongest recommendation in this shelf.' %}{% set link_url = None %}
+{% include '_shelf.html' %}
+{% endif %}
+
+{% if more_by_author %}
+{% set books = more_by_author %}{% set eyebrow = 'More from this author' %}{% set title = 'Continue with ' + book['Book-Author'] %}{% set subtitle = None %}{% set link_url = url_for('discover', q=book['Book-Author']) %}{% set link_text = 'See all' %}
+{% include '_shelf.html' %}
+{% endif %}
+{% endblock %}
