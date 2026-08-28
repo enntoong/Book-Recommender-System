@@ -56,11 +56,33 @@
             {% endif %}
         </div>
 
-        <div class="metadata-grid">
-            <div><span>Published</span><strong>{{ safe_year(book['Year-Of-Publication']) }}</strong></div>
-            <div><span>Publisher</span><strong>{{ book.Publisher }}</strong></div>
-            <div><span>ISBN</span><strong>{{ book.ISBN }}</strong></div>
-        </div>
+        <section class="edition-section" aria-label="Book editions in the source dataset">
+            <div class="edition-heading">
+                <div>
+                    <span class="eyebrow">Editions in dataset</span>
+                    <h3>{{ editions|length }} {% if editions|length == 1 %}edition{% else %}editions{% endif %} found</h3>
+                </div>
+                {% if editions|length > 1 %}
+                <p>The {{ book.num_ratings|compact }} reader ratings above combine explicit ratings from all matching editions of this title and author.</p>
+                {% else %}
+                <p>This title and author have one ISBN edition in the source catalogue.</p>
+                {% endif %}
+            </div>
+
+            <div class="edition-list">
+                {% for edition in editions %}
+                <article class="edition-card">
+                    <div class="edition-label">Edition {{ loop.index }}</div>
+                    <div class="metadata-grid edition-metadata-grid">
+                        <div><span>Published</span><strong>{{ safe_year(edition['Year-Of-Publication']) }}</strong></div>
+                        <div><span>Publisher</span><strong>{{ edition.Publisher }}</strong></div>
+                        <div><span>ISBN</span><strong>{{ edition.ISBN }}</strong></div>
+                        <div><span>Reader ratings</span><strong>{{ edition.edition_num_ratings|compact }}</strong></div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
 
         <div class="your-rating">
             <div>

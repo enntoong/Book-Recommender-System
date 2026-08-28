@@ -10,6 +10,7 @@ from flask import Flask, abort, flash, jsonify, redirect, render_template, reque
 from data_service import (
     book_by_isbn,
     book_by_key,
+    book_editions,
     book_rating_distribution,
     books_by_author,
     books_for_keys,
@@ -251,6 +252,7 @@ def book_details(isbn):
     _remember_recent(str(book["Book-Key"]))
     reader = get_entry(str(book["Book-Key"]))
     rating_breakdown = book_rating_distribution(str(book["Book-Key"]))
+    editions = book_editions(str(book["Book-Key"]))
     related = smart_recommendations(str(book["Book-Key"]), limit=10)
     more_by_author = books_by_author(str(book["Book-Author"]), exclude_key=str(book["Book-Key"]), limit=8)
     return render_template(
@@ -258,6 +260,7 @@ def book_details(isbn):
         book=book,
         reader=reader,
         rating_breakdown=rating_breakdown,
+        editions=editions,
         related=related,
         more_by_author=more_by_author,
         back_url=_safe_local_target(request.args.get("back"), url_for("discover")),

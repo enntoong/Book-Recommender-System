@@ -103,6 +103,12 @@ def load_explicit_ratings() -> pd.DataFrame:
 
 
 @lru_cache(maxsize=1)
+def explicit_rating_counts_by_isbn() -> pd.Series:
+    """Count explicit source ratings once for each ISBN."""
+    return load_explicit_ratings().groupby("ISBN").size()
+
+
+@lru_cache(maxsize=1)
 def display_books() -> pd.DataFrame:
     """One representative ISBN for each title+author book identity."""
     return load_catalogue().drop_duplicates("Book-Key").reset_index(drop=True).copy()
@@ -111,7 +117,9 @@ def display_books() -> pd.DataFrame:
 @lru_cache(maxsize=1)
 def explicit_ratings_with_book_keys() -> pd.DataFrame:
     """Explicit rating events joined to Lumen's title+author book identity."""
-    books = load_catalogue()[["ISBN", "Book-Key"]]
+    # ISBN is the rating file's join key.  Keep only one catalogue mapping per
+    # ISBN so a duplicated catalogue row cannot duplicate a real rating event.
+    books = load_catalogue()[["ISBN", "Book-Key"]].drop_duplicates("ISBN")
     ratings = load_explicit_ratings()[["ISBN", "Book-Rating"]]
     return ratings.merge(books, on="ISBN", how="inner")[["Book-Key", "Book-Rating"]]
 
@@ -363,6 +371,47 @@ def book_by_key(book_key: str) -> dict | None:
     if match.empty:
         return None
     return match.iloc[0].to_dict()
+
+
+@lru_cache(maxsize=512)
+def book_editions(book_key: str) -> list[dict]:
+    """Return every catalogue edition that belongs to one title+author identity.
+
+    Lumen combines explicit reader ratings at ``Book-Key`` level, so a book's
+    rating summary can include ratings attached to several ISBNs.  Returning
+    all matching catalogue rows makes that aggregation transparent on the book
+    details page instead of showing only the representative ISBN.
+    """
+    key = str(book_key or "").strip()
+    if not key:
+        return []
+
+    catalogue = load_catalogue()
+    editions = catalogue[catalogue["Book-Key"] == key].copy()
+    if editions.empty:
+        return []
+
+    # One ISBN represents one catalogue edition for display purposes.  The
+    # source file can occasionally contain duplicate catalogue rows, so avoid
+    # repeating the same ISBN in the reader-facing edition list.
+    editions = editions.drop_duplicates("ISBN", keep="first").copy()
+
+    rating_counts = explicit_rating_counts_by_isbn()
+    editions["edition_num_ratings"] = (
+        editions["ISBN"].map(rating_counts).fillna(0).astype(int)
+    )
+
+    # Keep the source catalogue order.  This also keeps the representative
+    # edition used elsewhere in Lumen first when it is the first source row.
+    fields = [
+        "ISBN",
+        "Book-Title",
+        "Book-Author",
+        "Year-Of-Publication",
+        "Publisher",
+        "edition_num_ratings",
+    ]
+    return editions[fields].to_dict("records")
 
 
 def books_for_keys(book_keys: list[str]) -> list[dict]:

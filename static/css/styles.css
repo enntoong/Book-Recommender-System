@@ -265,6 +265,15 @@ h1, h2 { font-family: 'Playfair Display', Georgia, serif; }
 .metadata-grid span, .metadata-grid strong { display: block; }
 .metadata-grid span { color: var(--ink-soft); font-size: .73rem; margin-bottom: 5px; }
 .metadata-grid strong { font-size: .85rem; word-break: break-word; }
+.edition-section { margin-top: 4px; }
+.edition-heading { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 13px; }
+.edition-heading h3 { margin: 3px 0 0; font-size: 1.13rem; }
+.edition-heading p { max-width: 440px; margin: 0; color: var(--ink-soft); font-size: .76rem; line-height: 1.5; text-align: right; }
+.edition-list { display: grid; gap: 11px; }
+.edition-card { padding: 12px; border: 1px solid var(--line); border-radius: 17px; background: rgba(255,255,255,.36); }
+.edition-label { margin: 1px 4px 9px; color: var(--forest-2); font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.edition-metadata-grid { grid-template-columns: .72fr 1.45fr 1fr .75fr; }
+.edition-metadata-grid div { min-width: 0; padding: 14px; }
 .your-rating { margin-top: 34px; padding: 27px; border-radius: 18px; background: var(--sage-2); }
 .your-rating h3 { margin-bottom: 4px; font-size: 1.18rem; }
 .your-rating p { margin: 0 0 16px; color: var(--ink-soft); font-size: .84rem; }
